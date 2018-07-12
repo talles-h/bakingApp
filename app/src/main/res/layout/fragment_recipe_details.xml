@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#eceff1"
+    tools:context=".recipedetails.RecipeDetailsFragment">
+
+    <TextView
+        android:id="@+id/text_view_ingredients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/cardview_light_background"
+        android:padding="8dp"
+        android:layout_marginTop="5dp"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        android:textStyle="normal"
+        android:text="@string/ingredients_title" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view_steps"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent" />
+
+</LinearLayout>
