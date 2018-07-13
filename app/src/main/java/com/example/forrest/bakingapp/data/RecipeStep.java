@@ -1,5 +1,7 @@
 package com.example.forrest.bakingapp.data;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -90,6 +92,7 @@ public class RecipeStep {
             obj.put("description", recipeStep.description);
             obj.put("videoURL", recipeStep.videoUrl);
             obj.put("thumbnailURL", recipeStep.thumbnailUrl);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

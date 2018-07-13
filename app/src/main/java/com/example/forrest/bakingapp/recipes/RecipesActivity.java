@@ -15,14 +15,10 @@ import com.example.forrest.bakingapp.utils.ActivityUtils;
 
 public class RecipesActivity extends AppCompatActivity {
 
-    private static final String TAG = "RecipesActivity";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes);
-
-
 
         /* Create the Fragment. */
         RecipesFragment recipesFragment =
@@ -36,14 +32,9 @@ public class RecipesActivity extends AppCompatActivity {
 
             ActivityUtils.addFragmentToActivity(fragmentManager, recipesFragment, R.id.fragment_container);
         }
-
-
     }
 
     public IdlingResource getIdlingResource() {
         return Injection.provideTasksRepository(this).getIdlingResource();
     }
-
-
-
 }

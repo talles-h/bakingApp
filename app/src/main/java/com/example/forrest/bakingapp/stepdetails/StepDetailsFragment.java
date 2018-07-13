@@ -4,10 +4,12 @@ package com.example.forrest.bakingapp.stepdetails;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,6 +46,8 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     private static final String ARGUMENT_RECIPE_ID = "recipe_id_arg";
     private static final String ARGUMENT_STEP_ID = "step_id_arg";
 
+    private static final String KEY_POSITION = "playback_position";
+
     private StepDetailsContract.Presenter mPresenter;
 
     private SimpleExoPlayer mExoPlayer;
@@ -53,12 +57,12 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     private MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mStateBuilder;
 
-
+    private long mPreviousPosition = -1;
+    private boolean mShouldRestorePosition = false;
 
     public StepDetailsFragment() {
         // Required empty public constructor
     }
-
 
     public static StepDetailsFragment newInstance(int recipeId, int stepId) {
         Bundle arguments = new Bundle();
@@ -83,6 +87,8 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
         new StepDetailsPresenter(getArguments().getInt(ARGUMENT_RECIPE_ID),
                 getArguments().getInt(ARGUMENT_STEP_ID), Injection.provideTasksRepository(getContext()),
                 this);
+
+
     }
 
     @Override
@@ -94,6 +100,16 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
         mStepDescTextView = root.findViewById(R.id.step_description);
         mPlayerView = root.findViewById(R.id.playerView);
 
+        Log.d(TAG, "onCreateView");
+        mShouldRestorePosition = false;
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(KEY_POSITION)) {
+                Log.d(TAG, "pos must be retored");
+                mPreviousPosition = savedInstanceState.getLong(KEY_POSITION);
+                mShouldRestorePosition = true;
+            }
+        }
+
         return root;
     }
 
@@ -101,32 +117,40 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume");
         mPresenter.start();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Log.d(TAG, "onPause");
         if (mExoPlayer != null) {
             mExoPlayer.setPlayWhenReady(false);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mExoPlayer != null) {
+            mPreviousPosition = mExoPlayer.getCurrentPosition();
+            mShouldRestorePosition = true;
+            outState.putLong(KEY_POSITION, mExoPlayer.getCurrentPosition());
+        }
+        Log.d(TAG, "onSaveInstanceState");
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mExoPlayer != null) {
-            mExoPlayer.setPlayWhenReady(false);
-        }
+        Log.d(TAG, "onStop");
+        releasePlayer();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        releasePlayer();
-        if (mMediaSession != null) {
-            mMediaSession.setActive(false);
-        }
     }
 
     private void initializeMediaSession() {
@@ -151,16 +175,23 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     }
 
     private void initializePlayer(Uri mediaUri) {
+        String userAgent = Util.getUserAgent(this.getContext(), "BakingApp");
+
         if (mExoPlayer == null) {
             TrackSelector trackSelector = new DefaultTrackSelector();
             LoadControl loadControl = new DefaultLoadControl();
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
             mPlayerView.setPlayer(mExoPlayer);
-            String userAgent = Util.getUserAgent(this.getContext(), "BakingApp");
             MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
                     this.getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             mExoPlayer.prepare(mediaSource);
             mExoPlayer.setPlayWhenReady(false);
+        }
+
+        if (mShouldRestorePosition) {
+            Log.d(TAG, "retoring position");
+            mExoPlayer.seekTo(mPreviousPosition);
+            mShouldRestorePosition = false;
         }
     }
 
@@ -186,10 +217,17 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     @Override
     public void showStepDetails(RecipeStep step) {
         mStepDescTextView.setText(step.getDescription());
+
         if (step.getVideoUrl() != null && !step.getVideoUrl().equals("")) {
             initializeMediaSession();
+            mPlayerView.setVisibility(View.VISIBLE);
             initializePlayer(Uri.parse(step.getVideoUrl()));
+        } else if (step.getThumbnailUrl() != null && !step.getThumbnailUrl().equals("")){
+            initializeMediaSession();
+            mPlayerView.setVisibility(View.VISIBLE);
+            initializePlayer(Uri.parse(step.getThumbnailUrl()));
         }
+
     }
 
     @Override
@@ -224,6 +262,8 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
         } else if((playbackState == ExoPlayer.STATE_READY)){
             mStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED,
                     mExoPlayer.getCurrentPosition(), 1f);
+        } else if (playbackState == ExoPlayer.STATE_ENDED) {
+            mStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, 0, 1f);
         }
     }
 
@@ -257,5 +297,6 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
         public void onSkipToPrevious() {
             mExoPlayer.seekTo(0);
         }
+
     }
 }

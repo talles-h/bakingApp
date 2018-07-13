@@ -44,9 +44,9 @@ public class RecipesFragment extends Fragment implements RecipesContract.View,
 
         // Create the presenter.
         mPresenter = new RecipesPresenter(
-                Injection.provideTasksRepository(getContext()),
-                this);
+                Injection.provideTasksRepository(getContext()),this);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -64,21 +64,13 @@ public class RecipesFragment extends Fragment implements RecipesContract.View,
         return rootView;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
 
     @Override
     public void onResume() {
         super.onResume();
         mPresenter.start();
     }
+
 
     /** ========== ADAPTER CLICK HANDLER METHOD ========== **/
     @Override
@@ -91,7 +83,6 @@ public class RecipesFragment extends Fragment implements RecipesContract.View,
 
     @Override
     public void setLoadingIndicator(boolean active) {
-
     }
 
     @Override
@@ -111,13 +102,10 @@ public class RecipesFragment extends Fragment implements RecipesContract.View,
 
     @Override
     public void showLoadingRecipesError() {
-
     }
 
     @Override
-    public void showNoRecipes() {
-
-    }
+    public void showNoRecipes() {}
 
     @Override
     public void setPresenter(RecipesContract.Presenter presenter) {

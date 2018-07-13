@@ -1,5 +1,7 @@
 package com.example.forrest.bakingapp.stepdetails;
 
+import android.util.Log;
+
 import com.example.forrest.bakingapp.data.Recipe;
 import com.example.forrest.bakingapp.data.RecipeStep;
 import com.example.forrest.bakingapp.data.source.RecipesDataSource;

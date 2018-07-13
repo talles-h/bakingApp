@@ -4,7 +4,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.example.forrest.bakingapp.Injection;
 import com.example.forrest.bakingapp.R;
 import com.example.forrest.bakingapp.utils.ActivityUtils;
 
@@ -21,7 +20,6 @@ public class StepDetailsActivity extends AppCompatActivity {
         int recipeId = getIntent().getIntExtra(EXTRA_RECIPE_ID, -1);
         int stepId = getIntent().getIntExtra(EXTRA_STEP_ID, -1);
 
-
         /* Create the Fragment. */
         StepDetailsFragment fragment =
                 (StepDetailsFragment) getSupportFragmentManager().findFragmentById(R.id.container_for_step_details);
@@ -34,7 +32,5 @@ public class StepDetailsActivity extends AppCompatActivity {
 
             ActivityUtils.addFragmentToActivity(fragmentManager, fragment, R.id.container_for_step_details);
         }
-
-
     }
 }
