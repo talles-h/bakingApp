@@ -5,8 +5,11 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.example.forrest.bakingapp.R;
@@ -43,6 +46,11 @@ public class RecipeDetailsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_details);
 
+     //   Toolbar myToolbar = findViewById(R.id.my_toolbar);
+     //   setSupportActionBar(myToolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         // Get the requested recipe id
         mRecipeId = getIntent().getIntExtra(EXTRA_RECIPE_ID, 0);
 
@@ -73,6 +81,19 @@ public class RecipeDetailsActivity extends AppCompatActivity
 
 
     }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                NavUtils.navigateUpFromSameTask(this);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     // Show ingredients.
     @Override

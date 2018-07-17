@@ -11,16 +11,38 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".recipes.RecipesActivity">
+
+        <activity android:name=".recipes.RecipesActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".recipedetails.RecipeDetailsActivity" />
-        <activity android:name=".stepdetails.StepDetailsActivity" />
-        <activity android:name=".ingredients.IngredientsActivity" />
+
+        <activity
+            android:name=".recipedetails.RecipeDetailsActivity"
+            android:parentActivityName=".recipes.RecipesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.forrest.bakingapp.recipes.RecipesActivity" />
+        </activity>
+
+
+        <activity
+            android:name=".stepdetails.StepDetailsActivity"
+            android:parentActivityName=".recipedetails.RecipeDetailsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.forrest.bakingapp.recipedetails.RecipeDetailsActivity" />
+        </activity>
+
+        <activity
+            android:name=".ingredients.IngredientsActivity"
+            android:parentActivityName=".recipedetails.RecipeDetailsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.forrest.bakingapp.recipedetails.RecipeDetailsActivity" />
+        </activity>
 
         <receiver android:name=".RecipeWidgetProvider">
             <intent-filter>

@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.forrest.bakingapp.Injection;
@@ -35,6 +36,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.squareup.picasso.Picasso;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,18 +49,21 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     private static final String ARGUMENT_STEP_ID = "step_id_arg";
 
     private static final String KEY_POSITION = "playback_position";
+    private static final String KEY_STATE = "state";
 
     private StepDetailsContract.Presenter mPresenter;
 
     private SimpleExoPlayer mExoPlayer;
     private SimpleExoPlayerView mPlayerView;
     private TextView mStepDescTextView;
+    private ImageView mImageView;
 
     private MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mStateBuilder;
 
     private long mPreviousPosition = -1;
     private boolean mShouldRestorePosition = false;
+    private boolean mShouldPlay = false;
 
     public StepDetailsFragment() {
         // Required empty public constructor
@@ -99,6 +104,7 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
 
         mStepDescTextView = root.findViewById(R.id.step_description);
         mPlayerView = root.findViewById(R.id.playerView);
+        mImageView = root.findViewById(R.id.imageView);
 
         Log.d(TAG, "onCreateView");
         mShouldRestorePosition = false;
@@ -107,6 +113,10 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
                 Log.d(TAG, "pos must be retored");
                 mPreviousPosition = savedInstanceState.getLong(KEY_POSITION);
                 mShouldRestorePosition = true;
+            }
+
+            if (savedInstanceState.containsKey(KEY_STATE)) {
+                mShouldPlay = savedInstanceState.getBoolean(KEY_STATE);
             }
         }
 
@@ -125,8 +135,16 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
+
         if (mExoPlayer != null) {
+            mShouldPlay = mExoPlayer.getPlayWhenReady();
+            mPreviousPosition = mExoPlayer.getCurrentPosition();
+            mShouldRestorePosition = true;
             mExoPlayer.setPlayWhenReady(false);
+        }
+
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
         }
     }
 
@@ -134,9 +152,8 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mExoPlayer != null) {
-            mPreviousPosition = mExoPlayer.getCurrentPosition();
-            mShouldRestorePosition = true;
-            outState.putLong(KEY_POSITION, mExoPlayer.getCurrentPosition());
+            outState.putLong(KEY_POSITION, mPreviousPosition);
+            outState.putBoolean(KEY_STATE, mShouldPlay);
         }
         Log.d(TAG, "onSaveInstanceState");
     }
@@ -145,7 +162,9 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
     public void onStop() {
         super.onStop();
         Log.d(TAG, "onStop");
-        releasePlayer();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
     }
 
     @Override
@@ -185,7 +204,7 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
             MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
                     this.getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             mExoPlayer.prepare(mediaSource);
-            mExoPlayer.setPlayWhenReady(false);
+
         }
 
         if (mShouldRestorePosition) {
@@ -193,6 +212,8 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
             mExoPlayer.seekTo(mPreviousPosition);
             mShouldRestorePosition = false;
         }
+        mExoPlayer.setPlayWhenReady(mShouldPlay);
+        mShouldPlay = false;
     }
 
     /**
@@ -223,9 +244,19 @@ public class StepDetailsFragment extends Fragment implements StepDetailsContract
             mPlayerView.setVisibility(View.VISIBLE);
             initializePlayer(Uri.parse(step.getVideoUrl()));
         } else if (step.getThumbnailUrl() != null && !step.getThumbnailUrl().equals("")){
-            initializeMediaSession();
-            mPlayerView.setVisibility(View.VISIBLE);
-            initializePlayer(Uri.parse(step.getThumbnailUrl()));
+            // Only displays thumbnail if video URL is not available.
+
+            // From the server list, I saw that thumbnail can be a .mp4 file.
+            // If it is .mp4, use Exoplayer.
+            if (step.getThumbnailUrl().endsWith(".mp4")) {
+                initializeMediaSession();
+                mPlayerView.setVisibility(View.VISIBLE);
+                initializePlayer(Uri.parse(step.getThumbnailUrl()));
+            } else { // Assuming it is an image.
+
+                Picasso.with(mImageView.getContext()).load(step.getThumbnailUrl()).into(mImageView);
+                mImageView.setVisibility(View.VISIBLE);
+            }
         }
 
     }
